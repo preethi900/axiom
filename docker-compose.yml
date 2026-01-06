@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # The Target Service
+  axiom-service:
+    build:
+      context: .
+      dockerfile: src/mock_service/Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - axiom-net
+
+  # The UI / Engine (Monolith) 
+  # Can run the engine and orchestrate things.
+  axiom-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AXIOM_TARGET_HOST=http://axiom-service:8000
+    volumes:
+      - ./docs:/app/docs
+      - ./tests:/app/tests
+    depends_on:
+      - axiom-service
+    networks:
+      - axiom-net
+
+  # Dedicated Test Runner (Ephemerial)
+  # Runs pytest in a container and exits.
+  axiom-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: pytest tests/generated_suite_test.py
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AXIOM_TARGET_HOST=http://axiom-service:8000
+    volumes:
+      - ./tests:/app/tests
+    networks:
+      - axiom-net
+    profiles:
+      - tests  # Only start when explicitly requested
+
+networks:
+  axiom-net:
+    driver: bridge
