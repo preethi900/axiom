@@ -5,30 +5,56 @@ Axiom is an intelligent pipeline that transforms natural language **specificatio
 ## Architecture
 
 ```mermaid
-graph TD
-    User[User] -->|Writes Spec| Spec[Markdown Spec]
-    Spec -->|Reads| UI[Streamlit UI]
-    UI -->|Triggers| Engine[Axiom Engine]
+sequenceDiagram
+    autonumber
+    actor User
+    participant UI as Streamlit UI
+    participant Engine as Axiom Engine
+    participant LLM as OpenAI GPT-4
+    participant FS as File System
+    participant TestRunner as Pytest Container
+    participant Service as Mock Service API
+
+    Note over User, UI: Phase 1: Specification & Generation
+    User->>UI: Inputs Markdown Spec (ACs)
+    User->>UI: Clicks "Generate Test Suite"
+    UI->>Engine: Run Pipeline (Spec File)
     
-    subgraph "Axiom Engine"
-        Parser[Requirement Parser] -->|Struct Data| Analyst[Requirements Analyst Agent]
-        Analyst -->|Test Scenarios| Tester[Software Tester Agent]
-        Tester -->|Pytest Code| Composer[Suite Composer Agent]
+    rect rgb(240, 248, 255)
+        Note right of Engine: Agentic Orchestration
+        Engine->>Engine: Parse Markdown -> [Requirements]
         
-        Analyst <--> LLM[(OpenAI LLM)]
-        Tester <--> LLM
-        Composer <--> LLM
+        loop For Each Requirement
+            Engine->>LLM: RequirementsAnalyst: Analyze & Create Scenario
+            LLM-->>Engine: JSON Test Scenario (Given/When/Then)
+            
+            Engine->>LLM: SoftwareTester: Write Pytest Code
+            LLM-->>Engine: Python Code Block (httpx)
+        end
+        
+        Engine->>LLM: SuiteComposer: Assemble File
+        LLM-->>Engine: Complete test_suite.py
     end
     
-    Composer -->|Generates| TestFile[test_suite.py]
+    Engine->>FS: Write tests/generated_suite_test.py
+    Engine-->>UI: Generation Complete
     
-    subgraph "Verification Environment"
-        TestRunner[Pytest Runner] -->|Executes| TestFile
-        TestRunner -->|HTTP Requests| Service[Target Service / Mock API]
+    Note over User, UI: Phase 2: Verification
+    User->>UI: Clicks "Run Verification"
+    UI->>TestRunner: Execute Pytest
+    
+    rect rgb(255, 240, 240)
+        Note right of TestRunner: Test Execution
+        TestRunner->>Service: GET /profile (Valid Token)
+        Service-->>TestRunner: 200 OK (PASS)
+        
+        TestRunner->>Service: PUT /profile (Invalid Email)
+        Service-->>TestRunner: 200 OK (FAIL! Expected 422)
+        Note right of TestRunner: Bug Detected!
     end
     
-    Service --x|Bug Found!| TestRunner
-    TestRunner -->|Results| UI
+    TestRunner-->>UI: Return Test Report
+    UI->>User: Display Results (Passed/Failed)
 ```
 
 ## Codeflow
@@ -82,3 +108,5 @@ This approach runs the Service, UI, and Tests in isolated containers on a shared
 
 ## Showcase
 ![Axiom Proof of Concept](poc.png)
+
+Created with ❤️ with Gemini!
