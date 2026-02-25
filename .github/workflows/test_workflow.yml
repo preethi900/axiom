@@ -7,4 +7,4 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: preethi900/hello_world_action
+    - uses: preethi900/hello_world_action@main
