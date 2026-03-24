@@ -58,7 +58,7 @@ sequenceDiagram
 ```
 
 ## Codeflow
-1.  **Specification**: Users write requirements in `docs/project_sample.md` (User Stories, ACs). See [Writing Guidelines](docs/README_SPEC.md) for best practices.
+1.  **Specification Generation**: Users can manually write requirements in `docs/project_sample.md` (User Stories, ACs), or use the **Auto-Generate from Story** feature in the UI to instantly expand a simple user story into a full Technical Specification. See [Writing Guidelines](docs/README_SPEC.md) for Markdown best practices.
 2.  **Parsing**: The **Engine** parses these into structured data.
 3.  **Analysis (Agent 1)**: The `RequirementsAnalyst` breaks down ACs into logical **Test Scenarios** (Given/When/Then).
 4.  **Test Generation (Agent 2)**: The `SoftwareTester` converts Scenarios into executable **Pytest** code.

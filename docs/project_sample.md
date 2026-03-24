@@ -1,51 +1,78 @@
-# User Profile & Security API
-> [Priority: Critical] [Domain: Identity]
+# Add and Review Items in Shopping Cart
+
+> [Priority: High]
 
 ## User Story
-**As a** mobile application developer
-**I want** a secure API to manage user profiles
-**So that** users can update their personal information and I can trust the data validity.
+As an e-commerce customer, I want to add items to my shopping cart and view the total price, so that I can review my order before checkout.
 
 ## Acceptance Criteria
 
-### AC-01: Secure Profile Retrieval
-**Given** a valid JWT token in the `Authorization` header
-**When** a GET request is made to `/profile`
-**Then** the system should return a 200 OK status
-**And** the response body must contain the user's `email`, `full_name`, and `account_tier`.
+### AC-01: Add Item to Cart
+**Given** a user is logged in and views a product  
+**When** the user clicks the "Add to Cart" button for a product  
+**Then** the product is added to the shopping cart  
+**And** the user sees a confirmation message "Item added to cart."
 
-### AC-02: Profile Update Validation
-**Given** an authenticated user
-**When** a PUT request is made to `/profile`
-**Then** the system should return a 422 Unprocessable Entity status
-**And** the error message should mention "Invalid email format".
+### AC-02: View Cart with Total Price
+**Given** a user has added items to their shopping cart  
+**When** the user navigates to the shopping cart page  
+**Then** the user sees all items listed in the cart  
+**And** each item displays its price  
+**And** the total price of all items is displayed at the bottom of the list
 
-### AC-03: Unauthorized Access Prevention
-**Given** a request without an `Authorization` header or with an invalid token
-**When** any request is made to `/profile`
-**Then** the system must return a 401 Unauthorized status.
+### AC-03: Add Item to Cart Without Stock
+**Given** a user is logged in and views a product with zero stock  
+**When** the user attempts to add the product to the cart  
+**Then** the product is not added to the shopping cart  
+**And** the user sees an error message "This item is out of stock."
 
-### AC-04: Non existing path access error
-**Given** a valid JWT token in the `Authorization` header
-**When** a GET request is made to `/non-existing-path`
-**Then** the system should return a 404 status
-**And** it should say page-not-found`.
+## Technical Contract
 
-## Technical Contract (JSON)
-
-### GET /profile Response Model
+### Request: Add Item to Cart
 ```json
+POST /api/cart/add
 {
-  "email": "user@example.com",
-  "full_name": "John Doe",
-  "account_tier": "gold"
+  "userId": "string",
+  "productId": "string",
+  "quantity": "integer"
 }
 ```
 
-### PUT /profile Request Model
+### Response: Add Item to Cart
 ```json
+200 OK
 {
-  "email": "new.email@example.com",
-  "full_name": "New Name"
+  "message": "Item added to cart."
+}
+```
+
+```json
+400 Bad Request
+{
+  "error": "This item is out of stock."
+}
+```
+
+### Request: View Cart
+```json
+GET /api/cart
+{
+  "userId": "string"
+}
+```
+
+### Response: View Cart
+```json
+200 OK
+{
+  "items": [
+    {
+      "productId": "string",
+      "name": "string",
+      "price": "float",
+      "quantity": "integer"
+    }
+  ],
+  "totalPrice": "float"
 }
 ```

@@ -9,6 +9,22 @@ langchain.debug = True
 
 from src.engine.parser import RequirementParser
 from src.engine.architect import TestArchitect
+from src.engine.agents import SpecGenerator
+
+def generate_markdown_spec(story: str, api_key: str = None) -> str:
+    """
+    Uses the SpecGenerator agent to turn a plain user story into a complete markdown specification.
+    """
+    print("Generating spec from story...")
+    guidelines = ""
+    readme_spec_path = os.path.join(os.path.dirname(__file__), '..', '..', 'docs', 'README_SPEC.md')
+    if os.path.exists(readme_spec_path):
+        with open(readme_spec_path, "r") as f:
+            guidelines = f.read()
+    
+    generator = SpecGenerator(api_key=api_key)
+    spec_md = generator.generate(story, guidelines)
+    return spec_md
 
 def run_engine(spec_file_path: str, output_test_file: str, target_host: str, api_key: str = None):
     """

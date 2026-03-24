@@ -4,7 +4,7 @@ import sys
 import subprocess
 import time
 import requests
-from src.engine.main import run_engine
+from src.engine.main import run_engine, generate_markdown_spec
 
 # Configuration
 SPEC_FILE = "docs/project_sample.md"
@@ -44,6 +44,30 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.header("1. Specification")
+    
+    st.subheader("Auto-Generate from Story")
+    user_story = st.text_area("Don't want to write a full spec? Enter a user story here:", height=100, placeholder="e.g., As a user, I want to retrieve my profile details so I can see my account tier...")
+    if st.button("Generate Specification"):
+        if not user_story.strip():
+            st.warning("Please enter a user story first.")
+        else:
+            with st.spinner("Agent is generating markdown spec..."):
+                try:
+                    generated_spec = generate_markdown_spec(user_story, api_key=api_key)
+                    with open(SPEC_FILE, "w") as f:
+                        f.write(generated_spec)
+                    
+                    # Update Streamlit's session state directly, so the text area renders the new value
+                    st.session_state["spec_editor"] = generated_spec
+                    
+                    st.success("Specification generated successfully!")
+                    time.sleep(1) # Give it a moment before rerun
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Failed to generate spec: {e}")
+                    
+    st.markdown("---")
+    st.subheader("Manual Editing")
     
     # Load Spec
     if os.path.exists(SPEC_FILE):
